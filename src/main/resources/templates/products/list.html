@@ -1,0 +1,80 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+      <link rel="stylesheet" th:href="@{/css/output.css}">
+<head> 
+    <title>eShop</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="w-full flex items-center justify-between mb-4">
+            <h1 class="text-2xl font-bold text-gray-700">Products List:</h1>
+            <form method="get" th:action="@{/api/products}" class="flex items-center space-x-2">
+                <input type="text" name="keyword" th:value="${param.keyword}" placeholder="Search products..." class="border rounded px-2 py-1" />
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">Search</button>
+            </form>
+            <form method="get" th:action="@{/api/products}" class="flex items-center space-x-2">
+                <label for="sort" class="text-gray-700 font-medium">Sort by:</label>
+                <select id="sort" name="sort" class="border rounded px-2 py-1">
+                    <option th:value="'name,asc'" th:selected="${param.sort == 'name,asc'}">Name (A-Z)</option>
+                    <option th:value="'name,desc'" th:selected="${param.sort == 'name,desc'}">Name (Z-A)</option>
+                    <option th:value="'price,asc'" th:selected="${param.sort == 'price,asc'}">Price (Low-High)</option>
+                    <option th:value="'price,desc'" th:selected="${param.sort == 'price,desc'}">Price (High-Low)</option>
+                </select>
+                <button type="submit" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded">Sort</button>
+            </form>
+            <a href="/api/categories" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow">
+                Categories
+            </a>
+        </div>
+        <hr class="my-1 border-t-2 border-gray-500 w-full">
+        <div class="grid grid-cols-3 grid-rows-2 gap-6 p-2">
+            <div th:each="product, iterStat : ${products.content}" 
+                 th:if="${iterStat.index < 6}" 
+                 class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-3 flex flex-col justify-between">
+                <h2 class="text-xl font-bold mb-2">
+                    Name: <span th:text="${product.name}"></span>
+                </h2>
+                <p class="text-gray-600 mb-1">
+                    Description: <span th:text="${product.description}"></span>
+                </p>
+                <p class="text-gray-600 mb-1">
+                    Category: <span th:text="${product.category.name}"></span>
+                </p>
+                <hr class="my-2 border-t border-gray-200 w-full">
+                <p class="text-lg font-bold mt-1 mb-1">
+                    Price: <span th:text="${product.price}"></span> $
+                </p>
+                <div class="mt-2 flex flex-row space-x-2 items-center justify-center">
+                    <form th:action="@{'/api/shopping-cart/add'}" method="post" class="inline">
+                        <input type="hidden" name="productId" th:value="${product.id}" />
+                        <input type="number" name="quantity" value="1" min="1" class="border rounded px-2 py-1 w-16" />
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">Add to Cart</button>
+                    </form>
+                    <span sec:authorize="hasRole('ADMIN')">
+                        <a th:href="@{'/api/products/edit/' + ${product.id}}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded ml-2">Edit</a>
+                    </span>
+                    <form sec:authorize="hasRole('ADMIN')" th:action="@{'/api/products/delete/' + ${product.id}}" method="post" class="inline">
+                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-center mt-8 space-x-2">
+            <a th:if="${products.hasPrevious()}" 
+               th:href="@{|/api/products?page=${products.number - 1}&size=${products.size}|}"
+               class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Previous</a>
+            <span class="px-4 py-2 bg-gray-100 rounded text-gray-700">
+            Page <span th:text="${products.number + 1}"></span> of <span th:text="${products.totalPages}"></span>
+            </span>
+            <a th:if="${products.hasNext()}" 
+               th:href="@{|/api/products?page=${products.number + 1}&size=${products.size}|}"
+               class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+        </div>
+    </div>
+</body>
+</html>

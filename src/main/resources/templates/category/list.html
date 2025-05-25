@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+      <link rel="stylesheet" th:href="@{/css/output.css}">
+<head> 
+    <title>eShop</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <div layout:fragment="content">
+        <h1 class="text-2xl font-bold mb-4 text-gray-700">Category List:</h1>
+        <hr class="my-2 border-t-2 border-gray-500 w-full">
+        <div class="grid grid-rows-2 grid-cols-3 gap-6 p-8">
+            <div th:each="category : ${categories}" class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-3 flex flex-col justify-between">
+            <h2 class="text-xl font-bold mb-1">
+                Name: <span th:text="${category.name}"></span>
+            </h2>
+            <p class="text-gray-600 mb-1">
+                Description: <span th:text="${category.description}"></span>
+            </p>
+            <p class="text-gray-600 mb-2">
+                Category Number: <span th:text="${category.id}"></span>
+            </p>
+            <hr class="my-2 border-t border-gray-200 w-full">
+            <div class="mt-2 flex space-x-2 items-center justify-center">
+                <form sec:authorize="hasRole('ADMIN')" th:action="@{'/api/categories/delete/' + ${category.id}}" method="post" class="inline">
+                <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Delete</button>
+                </form>
+            </div>
+            </div>
+        </div>
+        <div class="flex justify-center mt-8 space-x-2">
+            <a th:if="${categoryPage.hasPrevious()}" 
+               th:href="@{|/api/categories?page=${categoryPage.number - 1}&size=${categoryPage.size}|}"
+               class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Previous</a>
+            <span class="px-4 py-2 bg-gray-100 rounded text-gray-700">
+            Page <span th:text="${categoryPage.number + 1}"></span> of <span th:text="${categoryPage.totalPages}"></span>
+            </span>
+            <a th:if="${categoryPage.hasNext()}" 
+               th:href="@{|/api/categories?page=${categoryPage.number + 1}&size=${categoryPage.size}|}"
+               class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+        </div>
+    </div>
+</body>
+</html>
