@@ -18,6 +18,7 @@ public class Category {
 
     @NotBlank(message = "Category name cannot be blank.")
     @Size(min = 3, max = 255, message = "Category name must be between 3 and 255 characters.")
+    @jakarta.persistence.Column(unique = true)
     private String name;
 
     @Lob

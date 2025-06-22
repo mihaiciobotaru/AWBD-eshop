@@ -1,21 +1,32 @@
 package com.eshop.categoryservice.controllers;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.eshop.categoryservice.exception.ResourceNotFoundException;
 import com.eshop.categoryservice.models.Category;
@@ -25,90 +36,151 @@ import jakarta.validation.Valid;
 
 
 @Controller
-@RequestMapping("/api/categories")
+@RequestMapping("/")
 public class CategoryController {
     private final CategoryService categoryService;
+    private static final Logger logger = LoggerFactory.getLogger(CategoryController.class);
 
     @Autowired
     public CategoryController(CategoryService categoryService) {
         this.categoryService = categoryService;
     }
 
-    @GetMapping
-    public String listCategories(
-            Model model,
+    @GetMapping("/list-all")
+    public ResponseEntity<Page<Category>> listCategories(
             @RequestParam(defaultValue = "0", required = false) int page,
-            @RequestParam(defaultValue = "6", required = false) int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Category> categoryPage;
+            @RequestParam(defaultValue = "10", required = false) int size) {
+        
+        logger.debug("Received GET request for categories list. Page: {}, Size: {}", page, size);
+        Pageable pageable;
         if (size <= 0) {
-            categoryPage = categoryService.getAllCategories(PageRequest.of(0, 10)); // Default to first page with 10 items
+
+            pageable = PageRequest.of(page, 10);
+            logger.warn("Invalid page size ({}). Defaulting to 10 for pagination.", size);
         } else {
-            categoryPage = categoryService.getAllCategories(pageable);
+            pageable = PageRequest.of(page, size);
         }
-        model.addAttribute("categoryPage", categoryPage);
-        model.addAttribute("categories", categoryPage.getContent());
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", categoryPage.getTotalPages());
-        return "category/list";
+
+        Page<Category> categoryPage = categoryService.getAllCategories(pageable);
+        logger.info("Retrieved {} categories (Page {} of {}).",
+                    categoryPage.getNumberOfElements(), categoryPage.getNumber(), categoryPage.getTotalPages());
+        
+        return ResponseEntity.ok(categoryPage);
     }
 
-    @GetMapping("/{id}")
-    public String getCategory(@PathVariable Long id, Model model) {
+    @GetMapping("/get")
+    public ResponseEntity<?> getCategoryById(@RequestParam Long id) {
         Optional<Category> category = categoryService.getCategoryById(id);
         if (category.isEmpty()) {
-            throw new ResourceNotFoundException("Category not found with id: " + id);
+            logger.info("Category not found with id: {}", id);
+            return new ResponseEntity<>(
+                    Map.of("error", "Category with id " + id + " not found"), HttpStatus.NOT_FOUND);
         }
-        model.addAttribute("category", category.get());
-        return "category/detail";
+        logger.info("Category found: {}", category.get());
+        return ResponseEntity.ok(category.get());
     }
 
     @PostMapping("/create")
-    public String createCategory(@Valid @ModelAttribute("category") Category category) {
+    public ResponseEntity<?> createCategory(@Valid @RequestBody Category category,
+            BindingResult bindingResult) {
+        logger.debug("Received request to create category: {}", category);
+        if (bindingResult.hasErrors()) {
+
+            Map<String, List<String>> errors = bindingResult.getFieldErrors().stream()
+            .collect(Collectors.groupingBy(
+                    FieldError::getField,
+                    Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())
+                ));
+
+            logger.warn("Validation errors for category creation: {}", errors);
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Validation failed. Please check the 'errors' field for details.");
+            errorResponse.put("errors", errors);
+            errorResponse.put("expected_fields", List.of("name"));
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
         try {
-            categoryService.saveCategory(category);
-            return "Category created successfully";
+            Category createdCategory = categoryService.createCategory(category);
+            logger.info("Category created successfully: {}", createdCategory);
+            return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
         } catch (Exception e) {
-            return "Error creating category: " + e.getMessage();
-        }
-            return "category/create";
+            logger.error("Error creating category: {}", e.getMessage());
+            return new ResponseEntity<>(Map.of("error", "Failed to create category"), HttpStatus.BAD_REQUEST);
         }
     }
 
-    @GetMapping("/edit/{id}")
-    public String editCategoryForm(@PathVariable Long id, Model model) {
-        Optional<Category> category = categoryService.getCategoryById(id);
-        if (category.isEmpty()) {
-            throw new ResourceNotFoundException("Category not found with id: " + id);
+    @PutMapping("/edit/{id}")
+    public ResponseEntity<?> updateCategory(@PathVariable Long id,
+                                            @Valid @RequestBody Category category,
+                                            BindingResult bindingResult) {
+        logger.debug("Received PUT request to update category with ID: {}", id);
+
+        if (bindingResult.hasErrors()) {
+            Map<String, List<String>> errors = bindingResult.getFieldErrors().stream()
+            .collect(Collectors.groupingBy(
+                    FieldError::getField,
+                    Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())
+                ));
+            logger.warn("Validation errors for updating category with ID {}: {}", id, errors);
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Validation failed for update. Please check the 'errors' field for details.");
+            errorResponse.put("errors", errors);
+            errorResponse.put("expected_fields", List.of("name"));
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
-        model.addAttribute("category", category.get());
-        return "category/edit";
+
+        try {
+            Category updatedCategory = categoryService.updateCategory(id, category);
+            logger.info("Category with ID {} updated successfully: {}", id, updatedCategory);
+            return new ResponseEntity<>(updatedCategory, HttpStatus.OK);
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Attempted to update non-existent category with ID {}: {}", id, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error updating category with ID {}: {}", id, e.getMessage(), e);
+            return new ResponseEntity<>(Map.of("error", "Failed to edit category"), HttpStatus.BAD_REQUEST);
+        }
     }
 
-    @PostMapping("/edit/{id}")
-    public String updateCategory(@PathVariable Long id, 
-                                 @Valid @ModelAttribute("category") Category category, 
-                                 BindingResult result, 
-                                 RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            return "category/edit";
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
+        logger.debug("Received DELETE request for category with ID: {}", id);
+
+        try {
+            categoryService.deleteCategory(id);
+            logger.info("Category with ID {} deleted successfully.", id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (ResourceNotFoundException e) {
+
+            logger.warn("Attempted to delete non-existent category with ID {}: {}", id, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+
+            logger.error("Error deleting category with ID {}: {}", id, e.getMessage(), e);
+            return new ResponseEntity<>(Map.of("error", "Failed to delete category"), HttpStatus.BAD_REQUEST);
         }
-        if (!categoryService.existsById(id)) {
-            throw new ResourceNotFoundException("Category not found with id: " + id);
-        }
-        categoryService.updateCategory(id, category);
-        redirectAttributes.addFlashAttribute("message", "Category updated successfully");
-        return "redirect:/api/categories";
     }
 
-    @PostMapping("/delete/{id}")
-    public String deleteCategory(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        if (!categoryService.existsById(id)) {
-            throw new ResourceNotFoundException("Category not found with id: " + id);
-        }
-        categoryService.deleteCategory(id);
-        redirectAttributes.addFlashAttribute("message", "Category deleted successfully");
-        return "redirect:/api/categories";
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        String errorMessage = "Request body is missing or a malformed JSON. Please provide a valid JSON payload.";
+        logger.error("Caught HttpMessageNotReadableException: {}", ex);
+
+        return new ResponseEntity<>(Map.of("error", errorMessage), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        logger.warn("ResourceNotFoundException caught: {}", ex.getMessage());
+        return new ResponseEntity<>(Map.of("error", ex.getMessage()), HttpStatus.NOT_FOUND); // 404 Not Found
     }
     
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
+        logger.error("An unexpected internal server error occurred: {}", ex.getMessage(), ex);
+        return new ResponseEntity<>(Map.of("error", "An unexpected internal server error occurred."), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
