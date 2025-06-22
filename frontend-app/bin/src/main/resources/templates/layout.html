@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"> 
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title layout:title="eShop"></title>
+        <th:block layout:fragment="output">
+            <link rel="stylesheet" th:href="@{/css/output.css}">
+        </th:block>
+    </head>
+<body class="flex flex-col min-h-screen bg-slate-300">
+
+    <!-- Navigation Bar -->
+
+  <div th:replace="~{nav :: navbar}" class="bg-slate-300"></div>
+
+    <main class="flex-grow container mx-auto p-4 bg-slate-300">
+        <div layout:fragment="content">
+            </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white p-4 mt-8 text-center">
+        <p>&copy; 2025 eShop. All rights reserved.</p>
+    </footer>
+
+    </body>
+</html>

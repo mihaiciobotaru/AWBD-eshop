@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+      <link rel="stylesheet" th:href="@{/css/output.css}">
+<head> 
+    <title>eShop</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+   <div layout:fragment="content" class="p-8 text-center max-w-lg mx-auto my-12">
+        <h1 class="text-6xl font-bold text-red-600 mb-4" th:text="${statusCode}"></h1>
+        <h2 class="text-4xl font-semibold text-gray-800 mb-6" th:text="${errorTitle}">Error!</h2>
+        <p class="text-xl text-gray-600 mb-8" th:text="${errorMessage}">
+            We're sorry, but an unexpected error occurred. Please try again later.
+        </p>
+        <a th:href="@{/}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+            Go to the homepage
+        </a>
+
+    </div>
+</body>
+</html>

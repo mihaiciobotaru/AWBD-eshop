@@ -1,0 +1,11 @@
+server:
+  port: 8081 # Or any other free port, e.g., 8082, 8083
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/products_db # Update with your DB details
+    username: your_user
+    password: your_password
+  jpa:
+    hibernate:
+      ddl-auto: update # Or create-drop for development
+    show-sql: true

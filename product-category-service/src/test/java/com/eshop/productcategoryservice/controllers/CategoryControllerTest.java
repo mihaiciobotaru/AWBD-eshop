@@ -82,7 +82,7 @@ class CategoryControllerTest {
 
         when(categoryService.getAllCategories(any(Pageable.class))).thenReturn(categoryPage);
 
-        mockMvc.perform(get("/list-all")
+        mockMvc.perform(get("/categories/list-all")
                 .param("page", "0")
                 .param("size", "10")
                 .contentType(MediaType.APPLICATION_JSON))
@@ -106,7 +106,7 @@ class CategoryControllerTest {
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         when(categoryService.getAllCategories(pageableCaptor.capture())).thenReturn(categoryPage);
 
-        mockMvc.perform(get("/list-all")
+        mockMvc.perform(get("/categories/list-all")
                 .param("page", "0")
                 .param("size", "0") // Invalid size
                 .contentType(MediaType.APPLICATION_JSON))
@@ -124,7 +124,7 @@ class CategoryControllerTest {
     void testGetCategoryById_success() throws Exception {
         when(categoryService.getCategoryById(1L)).thenReturn(Optional.of(category1));
 
-        mockMvc.perform(get("/get")
+        mockMvc.perform(get("/categories/get")
                 .param("id", "1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -136,7 +136,7 @@ class CategoryControllerTest {
     void testGetCategoryById_notFound() throws Exception {
         when(categoryService.getCategoryById(99L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/get")
+        mockMvc.perform(get("/categories/get")
                 .param("id", "99")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
@@ -156,7 +156,7 @@ class CategoryControllerTest {
 
         when(categoryService.createCategory(any(Category.class))).thenReturn(savedCategory);
 
-        mockMvc.perform(post("/create")
+        mockMvc.perform(post("/categories/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(newCategory)))
                 .andExpect(status().isCreated())
@@ -169,7 +169,7 @@ class CategoryControllerTest {
         Category invalidCategory = new Category();
         invalidCategory.setName(""); // Assuming @NotBlank or @NotEmpty validation
 
-        mockMvc.perform(post("/create")
+        mockMvc.perform(post("/categories/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidCategory)))
                 .andDo(print())
@@ -186,7 +186,7 @@ class CategoryControllerTest {
         when(categoryService.createCategory(any(Category.class)))
                 .thenThrow(new IllegalArgumentException("Failed to create category"));
 
-        mockMvc.perform(post("/create")
+        mockMvc.perform(post("/categories/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(existingCategory)))
                 .andExpect(status().isBadRequest())
@@ -197,7 +197,7 @@ class CategoryControllerTest {
     void testCreateCategory_malformedJson() throws Exception {
         String malformedJson = "{name: \"Test\", }"; // Missing quotes around key, trailing comma
 
-        mockMvc.perform(post("/create")
+        mockMvc.perform(post("/categories/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(malformedJson))
                 .andExpect(status().isBadRequest())
@@ -218,7 +218,7 @@ class CategoryControllerTest {
 
         when(categoryService.updateCategory(eq(categoryId), any(Category.class))).thenReturn(updatedCategory);
 
-        mockMvc.perform(put("/edit/{id}", categoryId)
+        mockMvc.perform(put("/categories/edit/{id}", categoryId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updatedCategoryDetails)))
                 .andExpect(status().isOk())
@@ -235,7 +235,7 @@ class CategoryControllerTest {
         when(categoryService.updateCategory(eq(nonExistentId), any(Category.class)))
                 .thenThrow(new ResourceNotFoundException("Category not found with ID: " + nonExistentId));
 
-        mockMvc.perform(put("/edit/{id}", nonExistentId)
+        mockMvc.perform(put("/categories/edit/{id}", nonExistentId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updatePayload)))
                 .andExpect(status().isNotFound())
@@ -248,7 +248,7 @@ class CategoryControllerTest {
         Category invalidUpdatePayload = new Category();
         invalidUpdatePayload.setName(""); // Invalid name
 
-        mockMvc.perform(put("/edit/{id}", categoryId)
+        mockMvc.perform(put("/categories/edit/{id}", categoryId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidUpdatePayload)))
                 .andExpect(status().isBadRequest())
@@ -265,7 +265,7 @@ class CategoryControllerTest {
         when(categoryService.updateCategory(eq(categoryId), any(Category.class)))
                 .thenThrow(new IllegalArgumentException("Failed to edit category"));
 
-        mockMvc.perform(put("/edit/{id}", categoryId)
+        mockMvc.perform(put("/categories/edit/{id}", categoryId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(duplicateNamePayload)))
                 .andExpect(status().isBadRequest())
@@ -279,7 +279,7 @@ class CategoryControllerTest {
         Long categoryId = 1L;
         doNothing().when(categoryService).deleteCategory(categoryId); // Service returns void
 
-        mockMvc.perform(delete("/delete/{id}", categoryId))
+        mockMvc.perform(delete("/categories/delete/{id}", categoryId))
                 .andExpect(status().isNoContent()); // 204 No Content
         
         verify(categoryService, times(1)).deleteCategory(categoryId); // Verify service method was called
@@ -291,7 +291,7 @@ class CategoryControllerTest {
         doThrow(new ResourceNotFoundException("Category not found with ID: " + nonExistentId))
                 .when(categoryService).deleteCategory(nonExistentId);
 
-        mockMvc.perform(delete("/delete/{id}", nonExistentId))
+        mockMvc.perform(delete("/categories/delete/{id}", nonExistentId))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error", is("Category not found with ID: " + nonExistentId)));
     }

@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+      <link rel="stylesheet" th:href="@{/css/output.css}">
+<head> 
+    <title>eShop</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <div layout:fragment="content">
+<div class="flex items-center justify-center p-6">
+    <div class="w-full max-w-2xl bg-white rounded-lg shadow-xl p-8">
+        <h1 class="text-3xl font-extrabold mb-6 text-gray-800 border-b-2 pb-3">Shopping Cart</h1>
+
+        <div th:if="${#lists.isEmpty(cartItems)}" class="text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <p class="text-xl text-gray-600 font-semibold">Your cart is empty.</p>
+            <p class="text-gray-500 mt-2">It looks like you haven't added any products yet. Browse our amazing products!</p>
+            <a th:href="@{/api/products}" class="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">View Products</a>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(cartItems)}">
+            <div class="hidden md:grid md:grid-cols-5 gap-4 text-sm font-semibold text-gray-500 uppercase pb-3 border-b border-gray-200">
+                <span class="col-span-2">Product</span>
+                <span class="text-center">Price</span>
+                <span class="text-center">Quantity</span>
+                <span class="text-center">Total</span>
+            </div>
+
+            <ul class="divide-y divide-gray-200">
+                <li th:each="item : ${cartItems}" class="py-6 grid md:grid-cols-5 gap-4 items-center">
+                    <div class="col-span-2 flex items-center">
+                        <div>
+                            <span class="font-semibold text-lg text-gray-800" th:text="${item.productName}">Product Name</span>
+                            <p class="text-gray-500 text-sm">ID: <span th:text="${item.productId}"></span></p>
+                        </div>
+                    </div>
+                    <span class="text-center text-gray-700 font-medium">
+                        <span class="md:hidden font-semibold">Price: </span><span th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 2, 'POINT')} + ' $'">99.99 $</span>
+                    </span>
+                    <div class="flex items-center justify-center mt-2 md:mt-0">
+                        <form th:action="@{/api/shopping-cart/decrease}" method="post" class="inline-flex">
+                            <input type="hidden" name="productId" th:value="${item.productId}" />
+                            <button type="submit" class="p-1 px-3 bg-gray-200 text-gray-700 rounded-l-md hover:bg-gray-300 transition duration-200">
+                                -
+                        </form>
+                        <span class="mx-2 text-gray-800 font-semibold" th:text="${item.quantity}">1</span>
+                        <form th:action="@{/api/shopping-cart/increase}" method="post" class="inline-flex">
+                            <input type="hidden" name="productId" th:value="${item.productId}" />
+                            <button type="submit" class="p-1 px-3 bg-gray-200 text-gray-700 rounded-r-md hover:bg-gray-300 transition duration-200">
+                                +
+                        </form>
+                    </div>
+                    <span class="text-center text-gray-800 font-bold">
+                        <span class="md:hidden font-semibold">Subtotal: </span><span th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 2, 'POINT')} + ' $'">99.99 $</span>
+                    </span>
+                </li>
+            </ul>
+
+            <div class="mt-8 pt-6 border-t-2 border-gray-200 flex justify-between items-center">
+                <span class="text-xl font-bold text-gray-800">Total Cart:</span>
+                <span th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 2, 'POINT')} + ' $'" class="text-2xl font-extrabold text-blue-600">0.00 $</span>
+            </div>
+
+            <div class="mt-8 flex justify-between items-center space-x-4">
+                <a th:href="@{/api/products}" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-lg text-center transition duration-300">Continue Shopping</a>
+                <form  class="flex-1">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-300">
+                        Checkout
+                    </button>
+                </form>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+    </div>
+</body>
+</html>

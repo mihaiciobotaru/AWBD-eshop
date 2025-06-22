@@ -36,7 +36,7 @@ import jakarta.validation.Valid;
 
 
 @Controller
-@RequestMapping("/")
+@RequestMapping("/categories")
 public class CategoryController {
     private final CategoryService categoryService;
     private static final Logger logger = LoggerFactory.getLogger(CategoryController.class);

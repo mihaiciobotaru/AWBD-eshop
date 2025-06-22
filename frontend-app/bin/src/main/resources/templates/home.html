@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+      <link rel="stylesheet" th:href="@{/css/output.css}">
+<head> 
+    <title>eShop</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <div layout:fragment="content">
+        <h1 class="text-3xl font-bold text-gray-700" th:inline="text">Hello <span th:remove="tag" sec:authentication="name">thymeleaf</span>!</h1>
+        <span sec:authorize="hasRole('ROLE_ADMIN')" class="text-gray-600 text-lg">
+            You are logged in as an <strong>ADMIN</strong>.
+        </span>
+        <span sec:authorize="hasRole('ROLE_USER') and !hasRole('ROLE_ADMIN')" class="text-gray-600 text-lg">
+            You are logged in as a <strong>REGULAR USER</strong>.
+        </span>
+        <p class="text-gray-600 text-lg">Welcome to the eShop application.</p>
+        <p class="text-gray-600 text-lg">This is a simple web application built with Spring Boot.</p>
+        <p class="text-gray-600 text-lg">You can navigate to different sections using the menu above.</p>
+        <p class="text-gray-600 text-lg">The application manages login/register and gives you the possibility to browse through products and buy them.</p>
+    </div>
+</body>
+</html>
