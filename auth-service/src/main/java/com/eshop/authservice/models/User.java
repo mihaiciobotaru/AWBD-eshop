@@ -1,15 +1,15 @@
-package com.mihaiciobotaru.eshop.models;
+package com.eshop.authservice.models;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.JoinColumn;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 
 @Entity
@@ -43,31 +43,12 @@ public class User {
     @JoinColumn(name = "authority_id", nullable = true)
     private Authority authority;
 
-    @OneToOne
-    @JoinColumn(name = "shopping_cart_id", nullable = true)
-    private ShoppingCart shoppingCart;
-
     public User() {
     }
 
     public User(String username, String password) {
         this.username = username;
         this.password = password;
-        this.shoppingCart = new ShoppingCart(this);
-    }
-
-    public void setShoppingCart(ShoppingCart shoppingCart) {
-        this.shoppingCart = shoppingCart;
-    }
-
-    public ShoppingCart getShoppingCart() {
-        return shoppingCart;
-    }
-
-    public void createShoppingCartIfNull() {
-        if (this.shoppingCart == null) {
-            this.shoppingCart = new ShoppingCart(this);
-        }
     }
 
     public Long getId() {

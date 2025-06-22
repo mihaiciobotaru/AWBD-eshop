@@ -1,4 +1,4 @@
-package com.mihaiciobotaru.eshop.controllers;
+package com.eshop.authservice.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.mihaiciobotaru.eshop.dto.UserDto;
-import com.mihaiciobotaru.eshop.exception.UserAlreadyExistsException;
-import com.mihaiciobotaru.eshop.models.Authority;
-import com.mihaiciobotaru.eshop.models.User;
-import com.mihaiciobotaru.eshop.service.AuthorityService;
-import com.mihaiciobotaru.eshop.service.UserService;
+import com.eshop.authservice.dto.UserDto;
+import com.eshop.authservice.exception.UserAlreadyExistsException;
+import com.eshop.authservice.models.Authority;
+import com.eshop.authservice.models.User;
+import com.eshop.authservice.service.AuthorityService;
+import com.eshop.authservice.service.UserService;
 
 import jakarta.validation.Valid;
 @Controller

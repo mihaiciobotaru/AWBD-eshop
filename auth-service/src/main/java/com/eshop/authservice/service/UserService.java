@@ -1,14 +1,14 @@
-package com.mihaiciobotaru.eshop.service;
+package com.eshop.authservice.service;
 
-import com.mihaiciobotaru.eshop.models.User;
-import com.mihaiciobotaru.eshop.dto.UserDto;
-import com.mihaiciobotaru.eshop.exception.UserAlreadyExistsException;
-import com.mihaiciobotaru.eshop.repository.UserRepository;
+import com.eshop.authservice.models.User;
+import com.eshop.authservice.dto.UserDto;
+import com.eshop.authservice.exception.UserAlreadyExistsException;
+import com.eshop.authservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
-import com.mihaiciobotaru.eshop.models.Authority;
+import com.eshop.authservice.models.Authority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 

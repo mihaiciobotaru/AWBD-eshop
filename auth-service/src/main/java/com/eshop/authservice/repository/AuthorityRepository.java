@@ -1,9 +1,11 @@
-package com.mihaiciobotaru.eshop.repository;
+package com.eshop.authservice.repository;
 
-import com.mihaiciobotaru.eshop.models.Authority;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import java.util.Optional;
+
+import com.eshop.authservice.models.Authority;
 
 @Repository
 public interface AuthorityRepository extends JpaRepository<Authority, Long> {

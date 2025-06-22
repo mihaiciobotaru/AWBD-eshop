@@ -1,4 +1,4 @@
-package com.mihaiciobotaru.eshop.dto;
+package com.eshop.authservice.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 

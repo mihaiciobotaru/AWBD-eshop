@@ -1,4 +1,4 @@
-package com.mihaiciobotaru.eshop.enums;
+package com.eshop.authservice.enums;
 
 public enum AuthorityEnum {
     ROLE_USER,

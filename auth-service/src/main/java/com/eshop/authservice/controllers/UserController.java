@@ -1,6 +1,6 @@
-package com.mihaiciobotaru.eshop.controllers;
-import com.mihaiciobotaru.eshop.models.User;
-import com.mihaiciobotaru.eshop.repository.UserRepository;
+package com.eshop.authservice.controllers;
+import com.eshop.authservice.models.User;
+import com.eshop.authservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

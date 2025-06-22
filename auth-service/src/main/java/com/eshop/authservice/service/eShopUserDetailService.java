@@ -1,8 +1,8 @@
-package com.mihaiciobotaru.eshop.service;
+package com.eshop.authservice.service;
 
-import com.mihaiciobotaru.eshop.models.User;
-import com.mihaiciobotaru.eshop.repository.AuthorityRepository;
-import com.mihaiciobotaru.eshop.repository.UserRepository;
+import com.eshop.authservice.models.User;
+import com.eshop.authservice.repository.AuthorityRepository;
+import com.eshop.authservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

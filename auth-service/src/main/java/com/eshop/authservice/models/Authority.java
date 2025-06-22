@@ -1,6 +1,10 @@
-package com.mihaiciobotaru.eshop.models;
+package com.eshop.authservice.models;
+
+import com.eshop.authservice.enums.AuthorityEnum;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -8,11 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import com.mihaiciobotaru.eshop.enums.AuthorityEnum;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Table(name = "authorities")
 @Entity
