@@ -3,12 +3,9 @@ package com.eshop.authservice.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import com.eshop.authservice.dto.UserDto;
 import com.eshop.authservice.exception.UserAlreadyExistsException;
@@ -17,8 +14,17 @@ import com.eshop.authservice.models.User;
 import com.eshop.authservice.service.AuthorityService;
 import com.eshop.authservice.service.UserService;
 
+import java.util.Map;
+
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 @Controller
+@RequestMapping ("/auth")
 public class AuthController {
 
     private final UserService userService;
@@ -30,54 +36,19 @@ public class AuthController {
         this.authorityService = authorityService;
     }
 
-
-
-    @GetMapping("/register")
-    public String register(Model model) {
-        model.addAttribute("userDto", new UserDto());
-        return "register";
-    }
-
-    @GetMapping("/login")
-    public String login(@RequestParam(value = "error", required = false) String error,
-                        @RequestParam(value = "logout", required = false) String logout,
-                        @RequestParam(value = "success", required = false) String success,
-                        Model model) {
-
-        if (error != null) {
-            model.addAttribute("error", "Invalid username or password");
-            logger.warn("Login attempt failed due to invalid credentials");
-        }
-
-        if (logout != null) {
-            model.addAttribute("message", "You have been logged out successfully");
-            logger.info("User logged out successfully");
-        }
-
-        if (success != null) {
-            model.addAttribute("message", "You have logged in successfully");
-            logger.info("User logged in successfully");
-            return "redirect:/home";
-        }
-
-        return "login";
-    }
-
     @PostMapping("/register")
-    public String registerUser(@Valid @ModelAttribute("userDto") UserDto registrationDto,
-                                BindingResult bindingResult, Model model) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserDto registrationDto,
+                                BindingResult bindingResult) {
 
         if (!registrationDto.getPassword().equals(registrationDto.getMatchingPassword())) {
             bindingResult.rejectValue("matchingPassword", "error.userDto", "Passwords do not match");
             logger.warn("Password mismatch for user registration: {}", registrationDto.getEmail());
-            return "register";
+            return ResponseEntity.badRequest().body(Map.of("error", "Passwords do not match"));
         }
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("userDto", registrationDto);
-            bindingResult.reject("error.userDto", "Please correct the errors below: \n " + bindingResult.getAllErrors());
             logger.warn("Validation errors during user registration: {}", bindingResult.getAllErrors());
-            return "register";
+            return ResponseEntity.badRequest().body(Map.of("error", "Validation errors occurred"));
         }
 
         try {
@@ -88,14 +59,26 @@ public class AuthController {
         } catch (UserAlreadyExistsException e) {
             bindingResult.rejectValue("email", "error.userDto", "Email already exists");
             logger.warn("User registration failed due to existing email: {}", registrationDto.getEmail());
-            return "register";
+            return ResponseEntity.badRequest().body(Map.of("error", "Email already exists"));
         } catch (Exception e) {
             bindingResult.reject("error.userDto", "An unexpected error occurred during registration");
             logger.error("Unexpected error during user registration: {}", e.getMessage(), e);
-            return "register";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "An unexpected error occurred"));
         }
         logger.info("User registered successfully: {}", registrationDto.getEmail());
-        return "redirect:/login?registrationSuccess=true";
+        return ResponseEntity.ok(Map.of("message", "User registered successfully"));
+    }
+
+    @GetMapping("/get-user-info")
+    public ResponseEntity<?> getUserInfo(@RequestParam String email) {
+        try {
+            User user = userService.findByUsername(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            logger.error("Error fetching user info for email {}: {}", email, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error fetching user info"));
+        }
     }
 
 }

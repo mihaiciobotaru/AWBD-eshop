@@ -1,25 +1,40 @@
-package com.mihaiciobotaru.eshop.config;
+package com.eshop.authservice.config;
+
+import com.eshop.authservice.service.eShopUserDetailService;
+import com.eshop.authservice.security.JwtAuthenticationFilter; // You'll create this
+import com.eshop.authservice.security.JwtService; // You'll create this
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity; // For @PreAuthorize
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import com.mihaiciobotaru.eshop.service.eShopUserDetailService;
-
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity // Enable method-level security with @PreAuthorize, etc.
 public class SecurityConfig {
 
     private final eShopUserDetailService userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter; // Inject your JWT filter
 
-    public SecurityConfig(eShopUserDetailService userDetailsService) {
+    public SecurityConfig(eShopUserDetailService userDetailsService,
+                          JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userDetailsService = userDetailsService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -31,33 +46,22 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, eShopUserDetailService userDetailsService) throws Exception {
-        http
-        .userDetailsService(userDetailsService)
-            .authorizeHttpRequests(authorize -> authorize
-            .requestMatchers("/login", "/register", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
-                .requestMatchers("/api/products").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/api/products/**").hasRole("ADMIN")
-                .requestMatchers("/api/users/**").hasRole("ADMIN")
-                .requestMatchers("/").hasAnyRole("USER", "ADMIN")
-                .anyRequest().authenticated()
-            )
-            .formLogin((formLogin) -> formLogin
-                .loginPage("/login")
-                .defaultSuccessUrl("/login?success", true)
-                .permitAll()
-            )
-            .logout((logout) -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
-                .permitAll()
-            );
-        return http.build();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    } 
-    
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/auth/login", "/auth/register").permitAll()
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
 }
