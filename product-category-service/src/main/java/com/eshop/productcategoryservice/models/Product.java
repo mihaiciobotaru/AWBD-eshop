@@ -21,6 +21,7 @@ public class Product {
     private Long id;
 
     @NotBlank(message = "Product name cannot be blank.")
+    @jakarta.persistence.Column(unique = true)
     @Size(min = 3, max = 255, message = "Product name must be between 3 and 255 characters.")
     private String name;
 
@@ -32,6 +33,7 @@ public class Product {
     private float price;
 
     @ManyToOne
+    @NotNull(message = "Product must belong to a category.")
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
@@ -42,6 +44,14 @@ public class Product {
         this.description = description;
         this.price = price;
         this.category = category;
+    }
+
+    public Product(String name, String description, float price, Long categoryId) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.category = new Category();
+        this.category.setId(categoryId);
     }
 
     public Long getId() {
@@ -73,5 +83,16 @@ public class Product {
     }
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", price=" + price +
+                ", category=" + category +
+                '}';
     }
 }

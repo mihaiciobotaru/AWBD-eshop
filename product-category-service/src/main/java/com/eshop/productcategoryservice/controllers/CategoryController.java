@@ -51,7 +51,7 @@ public class CategoryController {
             @RequestParam(defaultValue = "0", required = false) int page,
             @RequestParam(defaultValue = "10", required = false) int size) {
         
-        logger.debug("Received GET request for categories list. Page: {}, Size: {}", page, size);
+        logger.info("Received GET request for categories list. Page: {}, Size: {}", page, size);
         Pageable pageable;
         if (size <= 0) {
 
@@ -70,6 +70,7 @@ public class CategoryController {
 
     @GetMapping("/get")
     public ResponseEntity<?> getCategoryById(@RequestParam Long id) {
+        logger.info("Received request to get category by ID: {}", id);
         Optional<Category> category = categoryService.getCategoryById(id);
         if (category.isEmpty()) {
             logger.info("Category not found with id: {}", id);
@@ -83,7 +84,7 @@ public class CategoryController {
     @PostMapping("/create")
     public ResponseEntity<?> createCategory(@Valid @RequestBody Category category,
             BindingResult bindingResult) {
-        logger.debug("Received request to create category: {}", category);
+        logger.info("Received request to create category: {}", category);
         if (bindingResult.hasErrors()) {
 
             Map<String, List<String>> errors = bindingResult.getFieldErrors().stream()
@@ -115,7 +116,7 @@ public class CategoryController {
     public ResponseEntity<?> updateCategory(@PathVariable Long id,
                                             @Valid @RequestBody Category category,
                                             BindingResult bindingResult) {
-        logger.debug("Received PUT request to update category with ID: {}", id);
+        logger.info("Received PUT request to update category with ID: {}", id);
 
         if (bindingResult.hasErrors()) {
             Map<String, List<String>> errors = bindingResult.getFieldErrors().stream()
@@ -147,7 +148,7 @@ public class CategoryController {
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
-        logger.debug("Received DELETE request for category with ID: {}", id);
+        logger.info("Received DELETE request for category with ID: {}", id);
 
         try {
             categoryService.deleteCategory(id);

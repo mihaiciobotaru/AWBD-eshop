@@ -24,7 +24,7 @@ public class ProductService {
     }
 
     @Transactional
-    public Product addProduct(Product product) {
+    public Product createProduct(Product product) {
         return productRepository.save(product);
     }
 
@@ -67,6 +67,30 @@ public class ProductService {
 
     public Page<Product> getProductsByCategoryIdAndPriceRange(Long categoryId, Double minPrice, Double maxPrice, Pageable pageable) {
         return productRepository.findByCategoryIdAndPriceBetween(categoryId, minPrice, maxPrice, pageable);
+    }
+
+    public Page<Product> findAllByOrderByPriceAsc(Pageable pageable) {
+        return productRepository.findAllByOrderByPriceAsc(pageable);
+    }
+
+    public Page<Product> findAllByOrderByPriceDesc(Pageable pageable) {
+        return productRepository.findAllByOrderByPriceDesc(pageable);
+    }
+
+    public Page<Product> findAllByOrderByNameAsc(Pageable pageable) {
+        return productRepository.findAllByOrderByNameAsc(pageable);
+    }
+
+    public Page<Product> findAllByOrderByNameDesc(Pageable pageable) {
+        return productRepository.findAllByOrderByNameDesc(pageable);
+    }
+
+    public Page<Product> findAll(Pageable pageable) {
+        return productRepository.findAll(pageable);
+    }
+
+    public Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable) {
+        return productRepository.findByNameContainingIgnoreCase(name, pageable);
     }
 
 }
