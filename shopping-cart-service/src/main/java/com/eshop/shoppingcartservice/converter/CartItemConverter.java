@@ -1,6 +1,6 @@
-package com.mihaiciobotaru.eshop.converter;
+package com.eshop.shoppingcartservice.converter;
 
-import com.mihaiciobotaru.eshop.models.CartItem;
+import com.eshop.shoppingcartservice.models.CartItem;
 
 import jakarta.persistence.AttributeConverter;
 

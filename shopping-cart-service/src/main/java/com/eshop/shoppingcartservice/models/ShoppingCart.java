@@ -1,19 +1,22 @@
-package com.mihaiciobotaru.eshop.models;
+package com.eshop.shoppingcartservice.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotNull;
-import com.mihaiciobotaru.eshop.converter.CartItemConverter;
+import com.eshop.shoppingcartservice.converter.CartItemConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.eshop.shoppingcartservice.dto.ProductDto;
+import com.eshop.shoppingcartservice.models.CartItem;
+
 @Entity
 @Table(name = "shopping_cart")
 public class ShoppingCart {
@@ -23,9 +26,8 @@ public class ShoppingCart {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
     @NotNull(message = "User cannot be null.")
-    private User user;
+    private Long userId;
 
     @Column(name = "cart_items", columnDefinition = "TEXT")
     @Convert(converter = CartItemConverter.class)
@@ -34,8 +36,8 @@ public class ShoppingCart {
     public ShoppingCart() {
     }
 
-    public ShoppingCart(User user) {
-        this.user = user;
+    public ShoppingCart(Long userId) {
+        this.userId = userId;
         this.cartItems = new ArrayList<>();
     }
 
@@ -47,37 +49,35 @@ public class ShoppingCart {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     public Long getUserId() {
-        Long userId = this.user.getId();
-        if (userId == null) {
-            throw new IllegalStateException("User ID cannot be null.");
-        }
         return userId;
     }
 
-    public void addProductToCart(Product product, int quantity) {
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public void addProductToCart(ProductDto product, int quantity) {
         for (CartItem item : this.cartItems) {
             if (item.getProductId().equals(product.getId())) {
                 item.setQuantity(item.getQuantity() + quantity);
                 return;
             }
         }
-        CartItem cartItem = new CartItem(product, quantity);
+        CartItem cartItem = new CartItem(
+                product.getId(),
+                product.getName(),
+                quantity,
+                product.getPrice()
+        );
+
         if (this.cartItems == null) {
             this.cartItems = new ArrayList<>();
         }
         this.cartItems.add(cartItem);
     }
 
-    public void addProductToCart(Product product) {
+    public void addProductToCart(ProductDto product) {
         addProductToCart(product, 1);
     }
 
@@ -95,7 +95,7 @@ public class ShoppingCart {
         this.cartItems.add(cartItem);
     }
 
-    public void removeProductFromCart(Product product) {
+    public void removeProductFromCart(ProductDto product) {
         this.cartItems.removeIf(item -> item.getProductId().equals(product.getId()));
     }
 
@@ -140,7 +140,7 @@ public class ShoppingCart {
     public String toString() {
         return "ShoppingCart{" +
                 "id=" + id +
-                ", user=" + user +
+                ", userId=" + userId +
                 ", cartItems=" + cartItems +
                 '}';
     }

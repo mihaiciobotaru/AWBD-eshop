@@ -1,9 +1,9 @@
-package com.mihaiciobotaru.eshop.service;
+package com.eshop.shoppingcartservice.service;
 
-import com.mihaiciobotaru.eshop.models.CartItem;
-import com.mihaiciobotaru.eshop.models.ShoppingCart;
-import com.mihaiciobotaru.eshop.repository.ShoppingCartRepository;
-import com.mihaiciobotaru.eshop.models.User;
+import com.eshop.shoppingcartservice.models.CartItem;
+import com.eshop.shoppingcartservice.models.ShoppingCart;
+import com.eshop.shoppingcartservice.repository.ShoppingCartRepository;
+import com.eshop.shoppingcartservice.dto.ProductDto;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,31 +12,22 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import com.mihaiciobotaru.eshop.models.Product;
-
-import com.mihaiciobotaru.eshop.repository.UserRepository;
 
 @Service
 public class ShoppingCartService {
     private final Logger logger = LoggerFactory.getLogger(ShoppingCartService.class);
     private final ShoppingCartRepository shoppingCartRepository;
-    private final UserRepository userRepository;
 
-    public ShoppingCartService(ShoppingCartRepository shoppingCartRepository, UserRepository userRepository) {
+    public ShoppingCartService(ShoppingCartRepository shoppingCartRepository) {
         this.shoppingCartRepository = shoppingCartRepository;
-        this.userRepository = userRepository;
     }
 
-    public ShoppingCart getCartByUser_Id(Long userId) {
+    public ShoppingCart getCartByUserId(Long userId) {
         Optional<ShoppingCart> shoppingCart = shoppingCartRepository.findByUser_Id(userId);
         if (shoppingCart.isPresent()) {
             return shoppingCart.get();
         } else {
-            User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
-            ShoppingCart newCart = new ShoppingCart(user);
-            shoppingCartRepository.save(newCart);
-            return newCart;
+            return createNewCartForUser(userId);
         }
     }
 
@@ -79,28 +70,20 @@ public class ShoppingCartService {
 
     public void addItemToCart(Long userId, CartItem cartItem) {
         logger.info("Adding item {} to shopping cart for user ID: {}", cartItem.getProductId(), userId);
-        Optional<ShoppingCart> cart = shoppingCartRepository.findByUser_Id(userId);
-        if (!cart.isPresent()) {
-            User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
-            cart = Optional.of(new ShoppingCart(user));
-        }
+        ShoppingCart cart = shoppingCartRepository.findByUser_Id(userId)
+                .orElseGet(() -> createNewCartForUser(userId));
 
-        cart.get().addCartItem(cartItem);
-        shoppingCartRepository.save(cart.get());
+        cart.addCartItem(cartItem);
+        shoppingCartRepository.save(cart);
     }
 
-    public void addProductToCart(Long userId, Product product, int quantity) {
-        logger.info("Adding item {} to shopping cart for user ID: {}", product.getId(), userId);
-        Optional<ShoppingCart> cart = shoppingCartRepository.findByUser_Id(userId);
-        if (!cart.isPresent()) {
-            User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
-            cart = Optional.of(new ShoppingCart(user));
-        }
+    public void addProductToCart(Long userId, ProductDto product, int quantity) {
+        logger.info("Adding item {} to shopping cart for user ID: {}", product, userId);
+        ShoppingCart cart = shoppingCartRepository.findByUser_Id(userId)
+                .orElseGet(() -> createNewCartForUser(userId));
 
-        cart.get().addProductToCart(product, quantity);
-        shoppingCartRepository.save(cart.get());
+        cart.addProductToCart(product, quantity);
+        shoppingCartRepository.save(cart);
     }
 
     public void removeItemFromCart(Long userId, Long productId) {
@@ -178,17 +161,13 @@ public class ShoppingCartService {
         }
     }
 
-    public void createShoppingCartIfNull(Long userId) {
-        if (!shoppingCartRepository.findByUser_Id(userId).isPresent()) {
-            User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
-            ShoppingCart newCart = new ShoppingCart(user);
-
-            shoppingCartRepository.save(newCart);
-            logger.info("Created a new shopping cart for user ID: {}", userId);
-        } else {
-            logger.info("Shopping cart already exists for user ID: {}", userId);
+    public ShoppingCart createShoppingCartIfNull(Long userId) {
+        Optional<ShoppingCart> existingCart = shoppingCartRepository.findByUser_Id(userId);
+        if (existingCart.isPresent()) {
+            logger.info("Found existing shopping cart for user ID: {}", userId);
+            return existingCart.get();
         }
+        return createNewCartForUser(userId);
     }
 
     public void saveShoppingCart(ShoppingCart shoppingCart) {
@@ -204,6 +183,14 @@ public class ShoppingCartService {
         } else {
             logger.warn("No shopping cart found to delete for user ID: {}", userId);
         }
+    }
+
+    public ShoppingCart createNewCartForUser(Long userId) {
+        ShoppingCart newCart = new ShoppingCart();
+        newCart.setCartItems(Collections.emptyList());
+        shoppingCartRepository.save(newCart);
+        logger.info("Created new shopping cart for user ID: {}", userId);
+        return newCart;
     }
 
 }

@@ -1,4 +1,4 @@
-package com.mihaiciobotaru.eshop.models;
+package com.eshop.shoppingcartservice.models;
 import java.io.Serializable;
 
 public class CartItem implements Serializable {
@@ -16,13 +16,6 @@ public class CartItem implements Serializable {
         this.productName = productName;
         this.quantity = quantity;
         this.price = price;
-    }
-
-    public CartItem(Product product, int quantity) {
-        this.productId = product.getId();
-        this.productName = product.getName();
-        this.quantity = quantity;
-        this.price = product.getPrice();
     }
 
     public Long getProductId() {
